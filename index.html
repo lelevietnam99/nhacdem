@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thư Viện Nhạc Đệm</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f4f8;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 30px 15px;
+            margin: 0;
+        }
+        h1 { color: #2c3e50; text-align: center; margin-bottom: 5px; }
+        .subtitle { color: #666; text-align: center; margin-bottom: 30px; }
+
+        .main-container {
+            background: #fff;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+            max-width: 600px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        /* Lưới các tùy chọn */
+        .controls-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        .control-group { display: flex; flex-direction: column; }
+        .control-group label {
+            font-weight: bold;
+            font-size: 0.9em;
+            color: #34495e;
+            margin-bottom: 5px;
+        }
+        .control-group select {
+            padding: 10px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 1em;
+            outline: none;
+            background-color: #f8fafc;
+            transition: border-color 0.2s;
+        }
+        .control-group select:focus { border-color: #3498db; }
+
+        /* Nút Tìm kiếm */
+        .search-btn {
+            width: 100%;
+            padding: 12px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            margin-bottom: 20px;
+        }
+        .search-btn:hover { background-color: #2980b9; }
+
+        /* Khu vực Danh sách bài hát */
+        .playlist-container {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 15px;
+            min-height: 100px;
+            margin-bottom: 20px;
+        }
+        .playlist-container h3 {
+            margin-top: 0;
+            font-size: 1.1em;
+            color: #2c3e50;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .track-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .track-item {
+            padding: 12px 15px;
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            transition: all 0.2s;
+        }
+        .track-item:hover {
+            border-color: #3498db;
+            transform: translateX(5px);
+        }
+        .track-item.playing {
+            background-color: #ebf5fb;
+            border-color: #3498db;
+            color: #2980b9;
+            font-weight: bold;
+        }
+        .track-item::before {
+            content: '🎵';
+            margin-right: 10px;
+        }
+        .track-item.playing::before {
+            content: '▶️';
+        }
+
+        .no-data {
+            text-align: center;
+            color: #7f8c8d;
+            font-style: italic;
+            padding: 20px 0;
+        }
+
+        /* Trình phát nhạc */
+        .audio-player-wrapper {
+            width: 100%;
+            margin-top: 15px;
+        }
+        audio { width: 100%; outline: none; }
+        
+        #now-playing-text {
+            text-align: center;
+            font-size: 0.9em;
+            color: #e67e22;
+            font-weight: bold;
+            margin-bottom: 10px;
+            min-height: 20px;
+        }
+
+        @media (max-width: 480px) {
+            .controls-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Thư Viện Nhạc Đệm</h1>
+    <p class="subtitle">Tùy chỉnh thông số để lọc và chọn bản nhạc đệm phù hợp</p>
+
+    <div class="main-container">
+        
+        <div class="controls-grid">
+            <div class="control-group">
+                <label>Thể loại (Style)</label>
+                <select id="sel-style">
+                    <option value="pop">Pop</option>
+                    <option value="ballad">Ballad</option>
+                    <option value="danca">Dân Ca</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label>Cảm xúc (Mood)</label>
+                <select id="sel-mood">
+                    <option value="vui">Vui</option>
+                    <option value="buon">Buồn</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label>Tốc độ (Tempo)</label>
+                <select id="sel-tempo">
+                    <option value="slow">Chậm</option>
+                    <option value="mid">Vừa</option>
+                    <option value="fast">Nhanh</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label>Nhạc cụ (Instrument)</label>
+                <select id="sel-inst">
+                    <option value="piano">Piano</option>
+                    <option value="guitar">Guitar</option>
+                </select>
+            </div>
+        </div>
+
+        <button class="search-btn" onclick="searchTracks()">🔍 Tìm kiếm nhạc đệm</button>
+
+        <div class="playlist-container">
+            <h3>Danh sách bài nhạc:</h3>
+            <ul class="track-list" id="track-list">
+                <div class="no-data">Hãy chọn thông số và bấm Tìm kiếm...</div>
+            </ul>
+        </div>
+
+        <div id="now-playing-text"></div>
+        <div class="audio-player-wrapper">
+            <audio id="audio-player" controls loop></audio>
+        </div>
+
+    </div>
+
+    <script>
+        // ==========================================
+        // CƠ SỞ DỮ LIỆU NHẠC (DATABASE)
+        // Bạn hãy thêm tên các file .mp3 vào mảng `tracks` tương ứng nhé
+        // ==========================================
+        const musicDatabase = {
+            "ballad_buon_slow_guitar": {
+                folderName: "Ballad - Buồn - Tốc độ chậm (70 BPM) - Guitar",
+                tracks: ["a1.mp3", "a2.mp3","a3.mp3","a4.mp3"] 
+            },
+            "ballad_buon_slow_piano": {
+                folderName: "Ballad - Buồn - Tốc độ chậm (70 BPM) - Piano",
+                tracks: ["11.mp3", "12.mp3","13.mp3","14.mp3"]
+            },
+            "ballad_vui_mid_guitar": {
+                folderName: "Ballad - Vui - Tốc độ vừa (90 BPM) - Guitar",
+                tracks: ["111.mp3","112.mp3","113.mp3","114.mp3"] 
+            },
+            "danca_buon_slow_guitar": {
+                folderName: "Dân ca - Buồn - Tốc độ chậm (70 BPM) - Guitar",
+                tracks: ["b1.mp3","b2.mp3","b3.mp3","b4.mp3"]
+            },
+            "danca_vui_mid_piano": {
+                folderName: "Dân ca - Vui - Tốc độ vừa (100 BPM) - Piano",
+                tracks: ["c1.mp3","c2.mp3","c3.mp3","c4.mp3"]
+            },
+            "pop_buon_slow_piano": {
+                folderName: "Pop - Buồn - Tốc độ chậm (70 BPM) - Piano",
+                tracks: ["7.mp3","8.mp3","9.mp3","10.mp3"]
+            },
+            "pop_vui_fast_guitar": {
+                folderName: "Pop - Vui - Tốc độ nhanh (120 BPM) - Guitar",
+                tracks: ["5.mp3","6.mp3"]
+            },
+            "pop_vui_mid_piano": {
+                folderName: "Pop - Vui - Tốc độ vừa (100 BPM) - Piano",
+                tracks: ["1.mp3","2.mp3","3.mp3","4.mp3"]
+            }
+        };
+        // ==========================================
+
+        const trackListEl = document.getElementById('track-list');
+        const audioPlayer = document.getElementById('audio-player');
+        const nowPlayingText = document.getElementById('now-playing-text');
+
+        function searchTracks() {
+            // Lấy thông số từ Select
+            const style = document.getElementById('sel-style').value;
+            const mood = document.getElementById('sel-mood').value;
+            const tempo = document.getElementById('sel-tempo').value;
+            const inst = document.getElementById('sel-inst').value;
+
+            // Tạo mã tìm kiếm, ví dụ: pop_vui_mid_piano
+            const searchKey = `${style}_${mood}_${tempo}_${inst}`;
+            
+            // Xóa danh sách cũ
+            trackListEl.innerHTML = '';
+            
+            const categoryData = musicDatabase[searchKey];
+
+            // Nếu tìm thấy danh mục và có bài hát
+            if (categoryData && categoryData.tracks.length > 0) {
+                const folderName = categoryData.folderName;
+                
+                categoryData.tracks.forEach(trackFile => {
+                    const li = document.createElement('li');
+                    li.className = 'track-item';
+                    // Hiển thị tên file (bỏ đuôi .mp3 cho đẹp)
+                    li.textContent = trackFile.replace('.mp3', ''); 
+                    
+                    li.onclick = () => {
+                        // Cập nhật giao diện bài đang phát
+                        document.querySelectorAll('.track-item').forEach(item => item.classList.remove('playing'));
+                        li.classList.add('playing');
+                        
+                        // Tạo đường dẫn và phát nhạc
+                        playTrack(folderName, trackFile);
+                    };
+                    
+                    trackListEl.appendChild(li);
+                });
+            } else {
+                trackListEl.innerHTML = '<div class="no-data">Chưa có bài nhạc nào cho cấu hình này. Hãy thử chọn cấu hình khác!</div>';
+            }
+        }
+
+        function playTrack(folderName, fileName) {
+            // Encode URI để xử lý các thư mục có dấu tiếng Việt và dấu cách
+            const fileUrl = encodeURI(`${folderName}/${fileName}`);
+            
+            audioPlayer.src = fileUrl;
+            audioPlayer.play().then(() => {
+                nowPlayingText.textContent = `Đang phát: ${fileName.replace('.mp3', '')}`;
+            }).catch(error => {
+                nowPlayingText.textContent = `⚠️ Lỗi: Không tìm thấy file trên Github. Hãy kiểm tra lại tên file.`;
+                console.error(error);
+            });
+        }
+    </script>
+</body>
+</html>
