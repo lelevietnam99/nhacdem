@@ -292,8 +292,9 @@
         }
 
         function playTrack(folderName, fileName) {
-            // Encode URI để xử lý các thư mục có dấu tiếng Việt và dấu cách
-            const fileUrl = encodeURI(`${folderName}/${fileName}`);
+            // Vì tất cả file mp3 đều nằm ở ngoài cùng (thư mục gốc) trên GitHub
+            // Nên ta bỏ folderName đi, chỉ cần gọi thẳng fileName là được!
+            const fileUrl = encodeURI(`${fileName}`);
             
             audioPlayer.src = fileUrl;
             audioPlayer.play().then(() => {
